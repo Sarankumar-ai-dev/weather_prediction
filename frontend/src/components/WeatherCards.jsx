@@ -20,7 +20,7 @@ const WeatherCards = ({ weatherData }) => {
 
   return (
     <div className="container">
-      {/* Top tabs */}
+
       <div className="cards">
         <div
           className={`card ${selectedCard === "weather" ? "active" : ""}`}

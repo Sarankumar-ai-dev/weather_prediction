@@ -32,13 +32,6 @@ const Navbar = ({ onSearch }) => {
           <FaSearch />
         </button>
       </div>
-
-
-      <div className="button-group">
-        <button className="nav-btn" onClick={() => navigate("/ask")}>
-          <BsStars /> Ask
-        </button>
-      </div>
     </div>
   );
 };

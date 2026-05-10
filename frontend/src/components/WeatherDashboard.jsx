@@ -7,7 +7,7 @@ const WeatherDashboard = () => {
 
   const fetchWeather = async (place) => {
     try {
-      const res = await fetch(`http://127.0.0.1:8000/weather/?place=${place}`);
+      const res = await fetch(` https://weather-prediction-bdgh.onrender.com/weather/?place=${place}`);
       const data = await res.json();
       setWeatherData(data);
     } catch (error) {
