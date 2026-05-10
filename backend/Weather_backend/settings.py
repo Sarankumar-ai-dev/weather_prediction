@@ -87,7 +87,7 @@ DATABASES = {
     }
 }
 CORS_ALLOWED_ORIGINS = [
-   "http://weather-prediction-one-rust.vercel.app",
+   "https://weather-prediction-one-rust.vercel.app",
 
 ]
 
