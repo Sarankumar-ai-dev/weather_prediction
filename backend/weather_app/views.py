@@ -25,25 +25,15 @@ def get_weather(request):
         return Response(cached_data)
 
     try:
-        geo_url = (
-            f"https://geocoding-api.open-meteo.com/v1/search?"
-            f"name={place}&count=1"
+
+        weather_url = (
+            f"http://api.weatherapi.com/v1/forecast.json?"
+            f"key=cd271f231eac4499a2b120941261105 "
+            f"&q={place}"
+            f"&days=7"
+            f"&aqi=no"
+            f"&alerts=no"
         )
-
-        geo_res = requests.get(
-            geo_url,
-            timeout=10
-        ).json()
-
-        if "results" not in geo_res:
-            return Response({
-                "error": "Place not found"
-            })
-
-        lat = geo_res["results"][0]["latitude"]
-        lon = geo_res["results"][0]["longitude"]
-
-        weather_url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&hourly=temperature_2m,precipitation,wind_speed_10m,relative_humidity_2m&forecast_days=7"
 
         weather_res = requests.get(
             weather_url,
@@ -56,14 +46,15 @@ def get_weather(request):
         # DEBUG
         print(weather_res)
 
-        if "hourly" not in weather_res:
+        # API error check
+        if "forecast" not in weather_res:
 
             return Response({
                 "error": "Weather data not available",
                 "api_response": weather_res
             })
 
-        hourly = weather_res["hourly"]
+        forecast_days = weather_res["forecast"]["forecastday"]
 
         result = []
 
@@ -72,27 +63,30 @@ def get_weather(request):
         winds = []
         humidity = []
 
-        for i in range(len(hourly["time"])):
+        for day in forecast_days:
 
-            t = hourly["temperature_2m"][i]
-            r = hourly["precipitation"][i]
-            w = hourly["wind_speed_10m"][i]
-            h = hourly["relative_humidity_2m"][i]
+            for hour in day["hour"]:
 
-            temps.append(t)
-            rains.append(r)
-            winds.append(w)
-            humidity.append(h)
+                t = hour["temp_c"]
+                r = hour["precip_mm"]
+                w = hour["wind_kph"]
+                h = hour["humidity"]
 
-            result.append({
-                "time": hourly["time"][i],
-                "temperature": t,
-                "rain": r,
-                "wind": w,
-                "humidity": h
-            })
+                temps.append(t)
+                rains.append(r)
+                winds.append(w)
+                humidity.append(h)
+
+                result.append({
+                    "time": hour["time"],
+                    "temperature": t,
+                    "rain": r,
+                    "wind": w,
+                    "humidity": h
+                })
 
         if not result:
+
             return Response({
                 "error": "No weather data available"
             })
@@ -113,7 +107,6 @@ def get_weather(request):
             "hourly_forecast": result
         }
 
-        
         cache.set(
             cache_key,
             final_data,
