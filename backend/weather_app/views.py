@@ -16,6 +16,7 @@ def get_weather(request):
         return Response({
             "error": "Place is required"
         })
+
     cache_key = f"weather_{place}_{date}"
 
     cached_data = cache.get(cache_key)
@@ -24,13 +25,15 @@ def get_weather(request):
         return Response(cached_data)
 
     try:
-
         geo_url = (
             f"https://geocoding-api.open-meteo.com/v1/search?"
             f"name={place}&count=1"
         )
 
-        geo_res = requests.get(geo_url, timeout=10).json()
+        geo_res = requests.get(
+            geo_url,
+            timeout=10
+        ).json()
 
         if "results" not in geo_res:
             return Response({
@@ -52,9 +55,19 @@ def get_weather(request):
             f"&forecast_days=7"
         )
 
-        weather_res = requests.get(weather_url, timeout=10).json()
+        weather_res = requests.get(
+            weather_url,
+            timeout=10,
+            headers={
+                "User-Agent": "Mozilla/5.0"
+            }
+        ).json()
+
+        # DEBUG
+        print(weather_res)
 
         if "hourly" not in weather_res:
+
             return Response({
                 "error": "Weather data not available",
                 "api_response": weather_res
@@ -110,7 +123,12 @@ def get_weather(request):
             "hourly_forecast": result
         }
 
-        cache.set(cache_key, final_data, timeout=3600)
+        
+        cache.set(
+            cache_key,
+            final_data,
+            timeout=3600
+        )
 
         return Response(final_data)
 
