@@ -4,7 +4,6 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from datetime import date as dt_date
 from django.core.cache import cache
-import os
 
 
 @api_view(['GET'])
@@ -75,8 +74,9 @@ def get_weather(request):
                 winds.append(w)
                 humidity.append(h)
 
+                # IMPORTANT FORMAT
                 result.append({
-                    "time": hour["time"],
+                    "time": hour["time"],  
                     "temperature": t,
                     "rain": r,
                     "wind": w,
@@ -92,6 +92,7 @@ def get_weather(request):
             "avg_humidity": round(sum(humidity) / len(humidity), 1)
         }
 
+        # SAME RESPONSE STRUCTURE
         final_data = {
             "place": place,
             "date": date,
