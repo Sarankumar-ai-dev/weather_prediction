@@ -43,17 +43,7 @@ def get_weather(request):
         lat = geo_res["results"][0]["latitude"]
         lon = geo_res["results"][0]["longitude"]
 
-        weather_url = (
-            f"https://api.open-meteo.com/v1/forecast?"
-            f"latitude={lat}"
-            f"&longitude={lon}"
-            f"&hourly="
-            f"temperature_2m,"
-            f"precipitation,"
-            f"wind_speed_10m,"
-            f"relative_humidity_2m"
-            f"&forecast_days=7"
-        )
+        weather_url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&hourly=temperature_2m,precipitation,wind_speed_10m,relative_humidity_2m&forecast_days=7"
 
         weather_res = requests.get(
             weather_url,
