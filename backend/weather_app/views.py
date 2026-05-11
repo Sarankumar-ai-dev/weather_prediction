@@ -60,6 +60,7 @@ def get_weather(request):
         winds = []
         humidity = []
 
+        # HOURLY DATA
         for day in forecast_days:
 
             for hour in day["hour"]:
@@ -74,15 +75,18 @@ def get_weather(request):
                 winds.append(w)
                 humidity.append(h)
 
-                # IMPORTANT FORMAT
+                # Open-Meteo style time format
+                formatted_time = hour["time"].replace(" ", "T")
+
                 result.append({
-                    "time": hour["time"],  
+                    "time": formatted_time,
                     "temperature": t,
                     "rain": r,
                     "wind": w,
                     "humidity": h
                 })
 
+        # SUMMARY
         summary = {
             "avg_temp": round(sum(temps) / len(temps), 1),
             "max_temp": max(temps),
@@ -92,14 +96,29 @@ def get_weather(request):
             "avg_humidity": round(sum(humidity) / len(humidity), 1)
         }
 
-        # SAME RESPONSE STRUCTURE
+        # DAILY FORECAST
+        daily_result = []
+
+        for day in forecast_days:
+
+            daily_result.append({
+                "date": day["date"],
+                "max_temp": day["day"]["maxtemp_c"],
+                "min_temp": day["day"]["mintemp_c"],
+                "condition": day["day"]["condition"]["text"],
+                "icon": day["day"]["condition"]["icon"]
+            })
+
+        # FINAL RESPONSE
         final_data = {
             "place": place,
             "date": date,
             "summary": summary,
-            "hourly_forecast": result
+            "hourly_forecast": result,
+            "daily_forecast": daily_result
         }
 
+        # CACHE
         cache.set(
             cache_key,
             final_data,
