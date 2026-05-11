@@ -1,22 +1,34 @@
 import React, { useState } from "react";
 import "./navbar.css";
-import { FaLocationDot, FaMapLocationDot } from "react-icons/fa6";
+import { FaLocationDot } from "react-icons/fa6";
 import { FaSearch } from "react-icons/fa";
-import { BsStars } from "react-icons/bs";
-import { useNavigate } from "react-router-dom";
 
 const Navbar = ({ onSearch }) => {
   const [place, setPlace] = useState("");
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
-  const handleSearch = () => {
-    if (place.trim()) onSearch(place);
+  const handleSearch = async () => {
+
+    if (!place.trim()) return;
+    if (loading) return;
+
+    try {
+      setLoading(true);
+      await onSearch(place.trim());
+
+    } catch (error) {
+      console.error("Search error:", error);
+
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="navbar">
 
       <div className="search-container">
+
         <FaLocationDot className="search-icon" />
 
         <input
@@ -25,13 +37,28 @@ const Navbar = ({ onSearch }) => {
           className="search-bar"
           value={place}
           onChange={(e) => setPlace(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              handleSearch();
+            }
+          }}
+
+          disabled={loading}
         />
 
-        <button className="search-btn" onClick={handleSearch}>
-          <FaSearch />
+        <button
+          className="search-btn"
+          onClick={handleSearch}
+          disabled={loading}
+        >
+          {
+            loading ? "..." : <FaSearch />
+          }
         </button>
+
       </div>
+
     </div>
   );
 };
