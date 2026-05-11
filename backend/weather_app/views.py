@@ -26,14 +26,8 @@ def get_weather(request):
 
     try:
 
-        weather_url = (
-            f"http://api.weatherapi.com/v1/forecast.json?"
-            f"key=cd271f231eac4499a2b120941261105 "
-            f"&q={place}"
-            f"&days=7"
-            f"&aqi=no"
-            f"&alerts=no"
-        )
+        # DIRECT WEATHER API
+        weather_url = f"https://wttr.in/{place}?format=j1"
 
         weather_res = requests.get(
             weather_url,
@@ -43,18 +37,14 @@ def get_weather(request):
             }
         ).json()
 
-        # DEBUG
         print(weather_res)
 
-        # API error check
-        if "forecast" not in weather_res:
+        if "weather" not in weather_res:
 
             return Response({
                 "error": "Weather data not available",
                 "api_response": weather_res
             })
-
-        forecast_days = weather_res["forecast"]["forecastday"]
 
         result = []
 
@@ -63,14 +53,18 @@ def get_weather(request):
         winds = []
         humidity = []
 
-        for day in forecast_days:
+        weather_days = weather_res["weather"]
 
-            for hour in day["hour"]:
+        for day in weather_days:
 
-                t = hour["temp_c"]
-                r = hour["precip_mm"]
-                w = hour["wind_kph"]
-                h = hour["humidity"]
+            hourly_data = day["hourly"]
+
+            for hour in hourly_data:
+
+                t = float(hour["tempC"])
+                r = float(hour["precipMM"])
+                w = float(hour["windspeedKmph"])
+                h = float(hour["humidity"])
 
                 temps.append(t)
                 rains.append(r)
