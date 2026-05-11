@@ -3,6 +3,7 @@ import requests
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from datetime import date as dt_date
+from django.core.cache import cache
 
 
 @api_view(['GET'])
@@ -15,6 +16,12 @@ def get_weather(request):
         return Response({
             "error": "Place is required"
         })
+    cache_key = f"weather_{place}_{date}"
+
+    cached_data = cache.get(cache_key)
+
+    if cached_data:
+        return Response(cached_data)
 
     try:
 
@@ -23,7 +30,7 @@ def get_weather(request):
             f"name={place}&count=1"
         )
 
-        geo_res = requests.get(geo_url).json()
+        geo_res = requests.get(geo_url, timeout=10).json()
 
         if "results" not in geo_res:
             return Response({
@@ -40,14 +47,13 @@ def get_weather(request):
             f"&hourly="
             f"temperature_2m,"
             f"precipitation,"
-            f"windspeed_10m,"
-            f"relativehumidity_2m"
+            f"wind_speed_10m,"
+            f"relative_humidity_2m"
             f"&forecast_days=7"
         )
 
-        weather_res = requests.get(weather_url).json()
+        weather_res = requests.get(weather_url, timeout=10).json()
 
-        # Debug response
         if "hourly" not in weather_res:
             return Response({
                 "error": "Weather data not available",
@@ -67,8 +73,8 @@ def get_weather(request):
 
             t = hourly["temperature_2m"][i]
             r = hourly["precipitation"][i]
-            w = hourly["windspeed_10m"][i]
-            h = hourly["relativehumidity_2m"][i]
+            w = hourly["wind_speed_10m"][i]
+            h = hourly["relative_humidity_2m"][i]
 
             temps.append(t)
             rains.append(r)
@@ -96,12 +102,17 @@ def get_weather(request):
             "max_wind": max(winds),
             "avg_humidity": round(sum(humidity) / len(humidity), 1)
         }
-        return Response({
+
+        final_data = {
             "place": place,
             "date": date,
             "summary": summary,
             "hourly_forecast": result
-        })
+        }
+
+        cache.set(cache_key, final_data, timeout=3600)
+
+        return Response(final_data)
 
     except Exception as e:
 
